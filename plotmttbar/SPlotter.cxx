@@ -27,6 +27,11 @@ SPlotter::SPlotter()
   m_can = NULL;
   m_ps  = NULL;
   m_ps_name = "default.ps";
+  m_filename = "";
+  m_xaxislabel = "";
+  m_yaxislabel = "";
+  m_plotname = "";
+  m_infotext = "";
 
   m_pad1 = NULL;
   m_pad2 = NULL;
@@ -38,6 +43,12 @@ SPlotter::SPlotter()
 
   m_page       = 0;
   m_lumi       = 0;
+  m_xmin       = 0;
+  m_ymin       = 0;
+  m_xmax       = 0;
+  m_ymax       = 0;
+  m_ysize      = 0;
+  m_rebin      = 0;
   m_syserr     = -1;
   debug        = false;
   bShapeNorm   = false;
@@ -74,6 +85,11 @@ void SPlotter::SetPsFilename(TString name)
   m_ps_name = name;
   
 }
+
+void SPlotter::SetXAxisLabel(TString xaxislabel) {m_xaxislabel = xaxislabel;}
+void SPlotter::SetYAxisLabel(TString yaxislabel) {m_yaxislabel = yaxislabel;}
+void SPlotter::SetPlotName(TString plotname) {m_plotname = plotname;}
+void SPlotter::SetInfoText(TString infotext) {m_infotext = infotext;}
 
 void SPlotter::DoStacking(vector<TObjArray*>& hists, TObjArray* StackNames, bool rename)
 {
@@ -149,6 +165,7 @@ void SPlotter::StackHists(std::vector<TObjArray*>& hists, int index, bool rename
       hist->SetName(histname + "__" + pname);
     }
     stack->GetStack()->Add(hist->GetHist());
+    AddHistWeight(hist->GetWeight());
     hist->SetIsUsedInStack(true);
     hist->SetDoDraw(false);
     stack->SetUnc(hist->GetUnc(), stack->GetStack()->GetHists()->GetSize()-1);
@@ -175,7 +192,7 @@ TObjArray* SPlotter::GetStacks(std::vector<TObjArray*>& hists, int index)
   for (int i=0; i<narr; ++i){
     if (hists[i]->GetEntries()==0){
       cerr << "SPlotter::GetStacks: Got no histograms in array " << i 
-	   << " unexpected behaviour - abort." << endl;
+           << " unexpected behaviour - abort." << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -480,7 +497,7 @@ void SPlotter::OpenPostscript(TString dir, TString hname)
     cout <<   "+---------------------------------------------------------------------+" << endl;
     m_page = 0;
   }
-      
+
   m_ps = NULL;
   if (bSingleEPS){
     m_ps = new TPostScript(filename, 113); // eps output
@@ -493,7 +510,7 @@ void SPlotter::OpenPostscript(TString dir, TString hname)
       m_ps->Range(27.0, 18.0);
     }
   }
-
+  m_filename = filename;
 }
 
 void SPlotter::ClosePostscript()
@@ -785,26 +802,34 @@ void SPlotter::PlotHists(vector<SHist*> hists, int ipad)
     ++ndrawn;
   }
 
-  if (debug){
-    if (sdata){
-      cout << "\nHist name = " << sdata->GetName() << " process = " << sdata->GetProcessName() << endl;
-      cout << "hists, entries = " << hists.size() << endl;
-      cout << "Data entries = " << sdata->GetHist()->Integral() << endl;
-    }
-    if (sstack){
-      double stack_entries = 0;
-      TObjArray* arr = sstack->GetStack()->GetStack();
-      TH1* h = (TH1*)arr->At(arr->GetEntries()-1);
-      stack_entries = h->Integral();
-      cout << "Stack entries = " << stack_entries << endl;
-      TList* hists = sstack->GetStack()->GetHists();
-      // calculate individual area
-      for (int i=0; i<hists->GetSize(); ++i){
-      	TH1* h = (TH1*) hists->At(i);
-      	int iend = h->GetNbinsX();
-      	double area = h->Integral(1,iend);
-      	cout << "  entries of histogram " << i << " in stack = " << area << endl;
-      }
+  TString outhistname(m_filename);
+  outhistname.ReplaceAll(".eps",".root");
+  outhistname.ReplaceAll(".ps",".root");
+  TFile *outHists = new TFile(outhistname, "RECREATE");
+  if (sdata){
+    cout << "\nHist name = " << sdata->GetName() << " process = " << sdata->GetProcessName() << endl;
+    cout << "hists, entries = " << hists.size() << endl;
+    cout << "Data entries = " << sdata->GetHist()->Integral() << endl;
+    outHists->cd();
+    sdata->GetHist()->Write();
+  }
+  if (sstack){
+    double stack_entries = 0;
+    TObjArray* arr = sstack->GetStack()->GetStack();
+    TH1* h = (TH1*)arr->At(arr->GetEntries()-1);
+    stack_entries = h->Integral();
+    cout << "Stack entries = " << stack_entries << endl;
+    TList* hists = sstack->GetStack()->GetHists();
+    // calculate individual area
+    //JP
+    for (int i=0; i<hists->GetSize(); ++i){
+      TH1* h = (TH1*) hists->At(i);
+      outHists->cd();
+      h->Write();
+      cout << "histogram name in stack: " << h->GetName() << endl;//JP
+      int iend = h->GetNbinsX();
+      double area = h->Integral(1,iend);
+      cout << "  entries of histogram " << i << " in stack = " << area << endl;
     }
   }
 
@@ -1002,7 +1027,8 @@ void SPlotter::DrawSysError(SHist* stack)
    
   static Int_t LightGray     = TColor::GetColor( "#aaaaaa" );
   //h->SetFillColor(kGray+2);
-  eAsym->SetFillColor(LightGray);
+  //eAsym->SetFillColor(LightGray);
+  eAsym->SetFillColor(kGray+2);
   eAsym->SetLineWidth(1);
   eAsym->SetFillStyle(3245);
   eAsym->Draw("E2 same");
@@ -1058,6 +1084,8 @@ double SPlotter::CalcShapeSysErrorForBinFromTheta(SHist* stack, int ibin, TStrin
 	TString systFullName = hSys -> GetProcessName();//e.g. QCD__uncert__plus
 
 	systFullName.ReplaceAll("__","#");
+    systFullName.ReplaceAll("plus", "up");
+    systFullName.ReplaceAll("minus", "down");
 	TObjArray* systFullNamePieces = systFullName.Tokenize("#");
 	TString systVariableName = hSys -> GetName();       
 
@@ -1070,23 +1098,24 @@ double SPlotter::CalcShapeSysErrorForBinFromTheta(SHist* stack, int ibin, TStrin
 	 
 	    // check if systematic uncertainty comes from the same sample as the background (e.g. ttbar)
 	    if (systFullNamePieces->Contains(sampleName)){
-	      double fac = 1.0;
-	      if (systFullName.Contains("ttbar")) fac = 0.94;      
-        if (systFullName.Contains("wjet")) fac = 0.98;              
-        if (systFullName.Contains("sitop")) fac = 0.94;              
-	      //cout << "warning! factor of 0.95 for systematics!!! (line 956)" << endl;
-	      absoluteerr = (hSyst->GetBinContent(ibin)*fac)-(h->GetBinContent(ibin));
 
 	      // the second one contains the name of the uncertainty: check if the error should be reduced
 	      TString sysname = ((TObjString*) systFullNamePieces->At(1))->GetString();
-	      
+
+          double fac = GetHistWeightAtIndex(i);
+          if (debug) cout << "histname: " << histname << " sysname: " << sysname << " fac: " << fac << endl;
+	      absoluteerr = (hSyst->GetBinContent(ibin)*fac)-(h->GetBinContent(ibin));
+
 	      // loop over systematics that should be reduced, find the right factor
+          bool sys_found = false;
 	      for (Int_t j=0; j<m_ScaleSysUncName->GetEntries(); ++j){
       		TString sysname_to_red = ((TObjString*) m_ScaleSysUncName->At(j))->GetString();
-      		if (sysname == sysname_to_red){		
+      		if (sysname == sysname_to_red){
       		  absoluteerr *= m_sysweight.At(j);
+              sys_found = true;
       		}
 	      }
+          if (!sys_found and i==0) cout << "Not applying scale correction for the " << sysname << " systematic uncertainty" << endl;
 	      
 	      // got it: add to the total error in quadrature
 	      squarederr += absoluteerr*absoluteerr;	   
@@ -1649,13 +1678,13 @@ void SPlotter::DrawLegend(vector<SHist*> hists)
     //if (bDrawLumi) top = 0.88;
   }
   float ysize = yfrac*narr;
-  float xleft = 0.7;
-  if (bSingleEPS) xleft = 0.55;
-  float xright = 0.88;
+  float xleft = 0.6;
+  if (bSingleEPS) xleft = 0.5;
+  float xright = 0.82;
   if (!bPortrait){
     top = 0.99;
     ysize = 0.07*narr;
-    xleft = 0.72;
+    xleft = 0.65;
     xright = 0.96;
   }
   
@@ -1666,8 +1695,9 @@ void SPlotter::DrawLegend(vector<SHist*> hists)
     top = 0.78;
   }
 
-  ysize = 0.06*4;
-  TLegend *leg = new TLegend(xleft,top-ysize,xright,top, NULL,"brNDC");
+  //ysize = 0.06*4;
+  ysize = m_ysize;
+  TLegend *leg = new TLegend(xleft-0.025,top-ysize,xright,top, NULL,"brNDC");
   leg->SetFillColor(0);
   leg->SetLineColor(1);
   leg->SetBorderSize(0);
@@ -1679,12 +1709,13 @@ void SPlotter::DrawLegend(vector<SHist*> hists)
   cout << "warning: plotting legend - check if ordering is ok (by hand, line 1530 in SPlotter!" << endl;
   //Int_t j[] = {0, 4, 1, 2, 3, 5, 6}; // dilepton
   //Int_t j[] = {0, 2, 1, 3, 4}; // CMSTT
-  Int_t j[] = {0, 7, 1, 2, 3, 4, 5, 6, 8, 9}; // l+jets case
+  //Int_t j[] = {0, 7, 1, 2, 3, 4, 5, 6, 8, 9}; // l+jets case
 
   //Int_t j[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}; // general case
 
-
+  vector<TString> leglist;
   for (Int_t i=0; i<narr; ++i){
+    bool skip_legend = false;
 
     //SHist* sh = hists[j[i]];
     SHist* sh = hists[i];
@@ -1696,12 +1727,16 @@ void SPlotter::DrawLegend(vector<SHist*> hists)
     int marker = sh->GetHist()->GetMarkerStyle();
     int lstyle = sh->GetHist()->GetLineStyle();
 
+    for (size_t ileg=0; ileg<leglist.size(); ileg++)
+      if (leglist[ileg] == legtitle) skip_legend=true;
     if (legtitle=="W+light") continue; //legtitle = "W(#rightarrow l #nu)+jets";
     if (legtitle=="W+c") continue;
     if (legtitle=="W+b") continue;
     if (legtitle=="single-top") legtitle = "Other";
     if (legtitle=="Z+jets") continue;
     if (legtitle=="diboson") continue;
+    if (skip_legend) continue;
+    leglist.push_back(legtitle);
 
     legtitle.ReplaceAll("TeV 1%", "TeV, 1%");
     legtitle.Prepend(" ");
@@ -1741,56 +1776,62 @@ void SPlotter::DrawLegend(vector<SHist*> hists)
 
   // auxiliary text
   TString name = hists[0]->GetName();
-  cout << "name = " << name << endl;
-  TString infotext;
-  if (name.Contains("ele_t0b0", TString::kIgnoreCase)) infotext = "e+jets, 0 t tag, 0 b tag";
-  if (name.Contains("ele_t0b1", TString::kIgnoreCase)) infotext = "e+jets, 0 t tag, 1 b tag";
-  if (name.Contains("ele_t1b0", TString::kIgnoreCase)) infotext = "e+jets, 1 t tag";
+  TString infotext = m_infotext;
 
-  if (name.Contains("muo_t0b0", TString::kIgnoreCase)) infotext = "#mu+jets, 0 t tag, 0 b tag";
-  if (name.Contains("muo_t0b1", TString::kIgnoreCase)) infotext = "#mu+jets, 0 t tag, 1 b tag";
-  if (name.Contains("muo_t1b0", TString::kIgnoreCase)) infotext = "#mu+jets, 1 t tag";
+  if (infotext == "") {
+    if (name.Contains("ele_t0b0", TString::kIgnoreCase)) infotext = "e+jets, 0 t tag, 0 b tag";
+    if (name.Contains("ele_t0b1", TString::kIgnoreCase)) infotext = "e+jets, 0 t tag, 1 b tag";
+    if (name.Contains("ele_t1b0", TString::kIgnoreCase)) infotext = "e+jets, 1 t tag";
 
-  if (name.Contains("lepton_0top0btag")) infotext = "e/#mu+jets, 0 t tag, 0 b tag";
-  if (name.Contains("lepton_0top1btag")) infotext = "e/#mu+jets, 0 t tag, 1 b tag";
-  if (name.Contains("lepton_1top")) infotext = "e/#mu+jets, 1 t tag";
+    if (name.Contains("muo_t0b0", TString::kIgnoreCase)) infotext = "#mu+jets, 0 t tag, 0 b tag";
+    if (name.Contains("muo_t0b1", TString::kIgnoreCase)) infotext = "#mu+jets, 0 t tag, 1 b tag";
+    if (name.Contains("muo_t1b0", TString::kIgnoreCase)) infotext = "#mu+jets, 1 t tag";
 
-  if (name.Contains("ee")) infotext = "ee";
-  if (name.Contains("mumu")) infotext = "#mu#mu";
-  if (name.Contains("emu")) infotext = "e#mu";
+    if (name.Contains("lepton_0top0btag")) infotext = "e/#mu+jets, 0 t tag, 0 b tag";
+    if (name.Contains("lepton_0top1btag")) infotext = "e/#mu+jets, 0 t tag, 1 b tag";
+    if (name.Contains("lepton_1top")) infotext = "e/#mu+jets, 1 t tag";
 
-  if (name == "btag0") infotext = "|#Deltay| < 1.0; 0 b tag";
-  if (name == "btag1") infotext = "|#Deltay| < 1.0; 1 b tag";
-  if (name == "btag2") infotext = "|#Deltay| < 1.0; 2 b tag";
-  if (name == "btag3") infotext = "|#Deltay| > 1.0; 0 b tag";
-  if (name == "btag4") infotext = "|#Deltay| > 1.0; 1 b tag";
-  if (name == "btag5") infotext = "|#Deltay| > 1.0; 2 b tag";
+    if (name.Contains("ee")) infotext = "ee";
+    if (name.Contains("mm")) infotext = "#mu#mu";
+    if (name.Contains("em")) infotext = "e#mu";
 
-  if (name == "httbtag0") infotext = "H_{T} > 800 GeV, 0 b tag (low-mass)";
-  if (name == "httbtag1") infotext = "H_{T} > 800 GeV, 1 b tag (low-mass)";
-  if (name == "httbtag2") infotext = "H_{T} > 800 GeV, 2 b tag (low-mass)";
-  if (name == "mjhttbtag0") infotext = "H_{T} < 800 GeV, 0 b tag (low-mass)";
-  if (name == "mjhttbtag1") infotext = "H_{T} < 800 GeV, 1 b tag (low-mass)";
-  if (name == "mjhttbtag2") infotext = "H_{T} < 800 GeV, 2 b tag (low-mass)";
+    if (name == "btag0") infotext = "|#Deltay| < 1.0; 0 b tag";
+    if (name == "btag1") infotext = "|#Deltay| < 1.0; 1 b tag";
+    if (name == "btag2") infotext = "|#Deltay| < 1.0; 2 b tag";
+    if (name == "btag3") infotext = "|#Deltay| > 1.0; 0 b tag";
+    if (name == "btag4") infotext = "|#Deltay| > 1.0; 1 b tag";
+    if (name == "btag5") infotext = "|#Deltay| > 1.0; 2 b tag";
+
+    if (name == "httbtag0") infotext = "H_{T} > 800 GeV, 0 b tag (low-mass)";
+    if (name == "httbtag1") infotext = "H_{T} > 800 GeV, 1 b tag (low-mass)";
+    if (name == "httbtag2") infotext = "H_{T} > 800 GeV, 2 b tag (low-mass)";
+    if (name == "mjhttbtag0") infotext = "H_{T} < 800 GeV, 0 b tag (low-mass)";
+    if (name == "mjhttbtag1") infotext = "H_{T} < 800 GeV, 1 b tag (low-mass)";
+    if (name == "mjhttbtag2") infotext = "H_{T} < 800 GeV, 2 b tag (low-mass)";
+  }
 
   TLatex *text1 = new TLatex(3.5, 24, infotext);
   text1->SetNDC();
   text1->SetTextAlign(13);
-  text1->SetX(0.20);
   text1->SetTextFont(42);
   text1->SetTextSize(0.06);
-  text1->SetY(0.995);
+  text1->SetX(0.2425);
+  text1->SetY(0.8);
 
-  if (name.BeginsWith("btag") || name.BeginsWith("htt") || name.BeginsWith("mjhtt")){
-    text1->SetX(0.19);
-    text1->SetTextSize(0.053);
-    text1->SetY(0.99);
-  }
-  if (name.BeginsWith("el_") || name.BeginsWith("mu_") || name.BeginsWith("lepton_")){
-    text1->SetY(0.995);
-  }
+  // if (name.BeginsWith("btag") || name.BeginsWith("htt") || name.BeginsWith("mjhtt")){
+  //   text1->SetX(0.19);
+  //   text1->SetTextSize(0.053);
+  //   text1->SetY(0.99);
+  // }
+  // if (name.BeginsWith("el_") || name.BeginsWith("mu_") || name.BeginsWith("lepton_")){
+  //   text1->SetY(0.995);
+  // }
+  // if (name.BeginsWith("btag6")){
+  //   text1->SetY(0.999);
+  //   text1->SetTextSize(0.043);
+  // }
   text1->Draw();
-  
+
 }
 
 
@@ -1799,17 +1840,17 @@ void SPlotter::DrawLumi(double lumi)
 
   TString infotext;
   if (lumi < 0)
-    infotext = TString::Format("%3.1f fb^{-1} (13 TeV)", m_lumi);
+    infotext = TString::Format("%3.0f fb^{-1} (13 TeV)", m_lumi);
   else 
-    infotext = TString::Format("%3.1f fb^{-1} (13 TeV)", lumi);
+    infotext = TString::Format("%3.0f fb^{-1} (13 TeV)", lumi);
 
   TLatex *text1 = new TLatex(3.5, 24, infotext);
   text1->SetNDC();
   text1->SetTextAlign(33);
   text1->SetX(0.95);
   text1->SetTextFont(42);
-  if (bPlotRatio){ 
-    text1->SetTextSize(0.06);
+  if (bPlotRatio){
+    text1->SetTextSize(0.055);
     text1->SetY(1.);
   } else {
     text1->SetTextSize(0.045);
@@ -1913,7 +1954,7 @@ bool SPlotter::SetMinMax(vector<SHist*> hists)
     double imin = hists[i]->GetMinimum(1e-10);
     if (min>imin){
       if (imin>1e-10){
-	      min = imin;
+        min = imin;
       }
     }
   }
@@ -1960,30 +2001,38 @@ bool SPlotter::SetMinMax(vector<SHist*> hists)
     SHist* h = hists[i];
     if (h->IsStack()){ 
       if (!islog){
-	h->GetStack()->SetMinimum(0.0011);
+        h->GetStack()->SetMinimum(0.0011);
       } else { 
-	if (min>1e-10){
-	  if (min<0.1){
-	    h->GetStack()->SetMinimum(0.04);
-	  } else {
-	    h->GetStack()->SetMinimum(min);
-	  }
-	}
+        if (min>1e-10){
+          if (min<0.1){
+            h->GetStack()->SetMinimum(0.04);
+          } else {
+            h->GetStack()->SetMinimum(min);
+          }
+        }
       }
       h->GetStack()->SetMaximum(uscale*max);
+      if (m_ymax!=m_ymin) {
+        h->GetStack()->SetMaximum(m_ymax);
+        h->GetStack()->SetMinimum(m_ymin);
+      }
     } else {
       if (!islog){ 
-	h->GetHist()->SetMinimum(0.0011);
+        h->GetHist()->SetMinimum(0.0011);
       } else { 
-	if (min>1e-10){
-	  if (min<0.1){
-	    h->GetHist()->SetMinimum(0.04);
-	  } else {
-	    h->GetHist()->SetMinimum(min);
-	  }
-	}
+        if (min>1e-10){
+          if (min<0.1){
+            h->GetHist()->SetMinimum(0.04);
+          } else {
+            h->GetHist()->SetMinimum(min);
+          }
+        }
       }
       h->GetHist()->SetMaximum(uscale*max);
+      if (m_ymax!=m_ymin) {
+        h->GetHist()->SetMaximum(m_ymax);
+        h->GetHist()->SetMinimum(m_ymin);
+      }
     }
   }  
 
@@ -2147,11 +2196,12 @@ void SPlotter::GeneralCosmetics(TH1* hist)
   if (title.Contains("GeV")){
     ytitle = TString::Format("Events / %i GeV", (Int_t) w);
   }
+  if (m_yaxislabel != "") ytitle = m_yaxislabel;
+  hist->GetYaxis()->SetTitle(ytitle);
 
-  hist->GetYaxis()->SetTitle(ytitle);  
-  
   // set X-axis title
-  hist->GetXaxis()->SetTitle(hist->GetTitle()); 
+  hist->GetXaxis()->SetTitle(hist->GetTitle());
+  if (m_xaxislabel != "") hist->GetXaxis()->SetTitle(m_xaxislabel);
 
   hist->SetTitle("");
 
@@ -2165,6 +2215,14 @@ void SPlotter::GeneralCosmetics(TH1* hist)
   hist->GetYaxis()->SetLabelFont(42);
 
   hist->SetLineWidth(2);
+
+  if (m_xaxislabel=="auto") {
+    TString histname = hist->GetName();
+    if (histname.Contains("btag6")) hist->GetXaxis()->SetTitle("|#Deltay|");
+    if (histname.Contains("WJets_TMVA_response")) hist->GetXaxis()->SetTitle("W+jets BDT response");
+    if (histname.Contains("topjet_pt")) hist->GetXaxis()->SetTitle("p_{T} [GeV]");
+    if (histname.Contains("toppuppijet_Msdp")) hist->GetXaxis()->SetTitle("M_{SD} [GeV]");
+  }
 
 }
 
@@ -2319,7 +2377,7 @@ void SPlotter::YieldCosmetics(TH1* hist)
 
     hist->GetXaxis()->SetTitle("integrated luminosity [fb^{-1}]");
     double dlum = hist->GetXaxis()->GetBinWidth(1);
-    TString xtit = TString::Format("events per %3.1f fb^{-1}", dlum);
+    TString xtit = TString::Format("events per %3.0f fb^{-1}", dlum);
     hist->GetYaxis()->SetTitle(xtit);
 }
 
@@ -2342,6 +2400,7 @@ void SPlotter::RatioCosmetics(TH1* hist)
 
   hist->GetYaxis()->SetRangeUser(0.3, 1.7);
   //hist->GetYaxis()->SetRangeUser(0.05, 1.95);
+  if (m_xmin!=m_xmax) hist->GetXaxis()->SetRangeUser(m_xmin,m_xmax);
   hist->SetMarkerSize(0.7);
 
   // cosmetics for portrait mode 

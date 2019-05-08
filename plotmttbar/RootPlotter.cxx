@@ -835,12 +835,12 @@ void RootPlotter::PlotHistos(const char* psfilename)
 	if (!bPlotRatio) yfrac = 0.05;
 	Float_t top = 0.92;
 	Float_t ysize = yfrac*fNumOfSamples;
-	Float_t xleft = 0.65;
-	Float_t xright = 0.92;
+	Float_t xleft = 0.6;
+	Float_t xright = 0.82;
 	if (!bPortrait){
 	  top = 0.99;
 	  ysize = 0.07*fNumOfSamples;
-	  xleft = 0.72;
+	  xleft = 0.65;
 	  xright = 0.96;
 	}
 	

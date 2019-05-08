@@ -1,0 +1,25 @@
+bin/Plots -f Zprimettbar_allhad_DeltaY.steer
+bin/Plots -f Zprimettbar_allhad_DeltaY_mTTgt2.steer
+bin/Plots -f Zprimettbar_ljet_topjet_pt_ele.steer
+bin/Plots -f Zprimettbar_ljet_topjet_pt_muon.steer
+bin/Plots -f Zprimettbar_ljet_toppuppijet_msdp_ele.steer
+bin/Plots -f Zprimettbar_ljet_toppuppijet_msdp_muon.steer
+bin/Plots -f Zprimettbar_ljet_wjetBDT_ele.steer
+bin/Plots -f Zprimettbar_ljet_wjetBDT_muon.steer
+bin/Plots -f Zprimettbar_ll_deltar_mm.steer
+bin/Plots -f Zprimettbar_ll_deltar_ee.steer
+bin/Plots -f Zprimettbar_ll_deltar_em.steer
+
+cd output
+epstopdf Allhad_DeltaY_Main_btag6.eps
+epstopdf Allhad_DeltaY_mTTgt2_Main_btag6.eps
+epstopdf Dilepton_deltar_ee_Main_ee.eps
+epstopdf Dilepton_deltar_em_Main_em.eps
+epstopdf Dilepton_deltar_mm_Main_mm.eps
+epstopdf Topjet_pt_ele_Main_topjet_pt_ele_01top_antiWJetsMVA_antichi2_mttbar.eps
+epstopdf Topjet_pt_muon_Main_topjet_pt_mu_01top_antiWJetsMVA_antichi2_mttbar.eps
+epstopdf Toppuppijet_Msdp_ele_Main_toppuppijet_Msdp_matched_ele_01top_antiWJetsMVA_antichi2_mttbar.eps
+epstopdf Toppuppijet_Msdp_muon_Main_toppuppijet_Msdp_matched_mu_01top_antiWJetsMVA_antichi2_mttbar.eps
+epstopdf WJetsBDT_ele_ljet_Main_WJets_TMVA_response_ele_01top_chi2_mttbar.eps
+epstopdf WJetsBDT_muon_ljet_Main_WJets_TMVA_response_mu_01top_chi2_mttbar.eps
+cd ..

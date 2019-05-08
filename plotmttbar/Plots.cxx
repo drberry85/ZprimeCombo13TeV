@@ -86,6 +86,10 @@ int main(int argc, char** argv)
   TString CycleName          = steerfile->GetCycleName();
   TObjArray* InputFilenames  = steerfile->GetInputFiles();
   TString PsFilename         = steerfile->GetOutputPsFile();
+  TString XAxisLabel         = steerfile->GetXAxisLabel();
+  TString YAxisLabel         = steerfile->GetYAxisLabel();
+  TString PlotName           = steerfile->GetPlotName();
+  TString InfoText           = steerfile->GetInfoText();
   Bool_t ShapeNorm           = steerfile->GetShapeNorm();
   Bool_t RatioPlot           = steerfile->GetRatioPlot();
   Bool_t zscore              = steerfile->GetZScoreInRatio();
@@ -103,7 +107,13 @@ int main(int argc, char** argv)
   Bool_t DrawLumi            = steerfile->GetDrawLumi();
   Bool_t ForPrelim           = steerfile->GetForPrelim();
   Bool_t ForPublication      = steerfile->GetForPublication();
+  Int_t Rebin                = steerfile->GetRebin();
   Float_t Lumi               = steerfile->GetLumi();
+  Float_t XMin               = steerfile->GetXMin();
+  Float_t YMin               = steerfile->GetYMin();
+  Float_t XMax               = steerfile->GetXMax();
+  Float_t YMax               = steerfile->GetYMax();
+  Float_t YSize              = steerfile->GetYSize();
   Float_t SysErr             = steerfile->GetSysError();
   Bool_t DrawLegend          = steerfile->GetDrawLegend();
   Bool_t DoCumulative        = steerfile->GetDoCumulative();
@@ -120,7 +130,12 @@ int main(int argc, char** argv)
 
   FileParser fp;
   //fp.SetDebug();
-  fp.SetDoCumulative(DoCumulative);  
+  fp.SetDoCumulative(DoCumulative);
+  fp.SetXMin(XMin);
+  fp.SetXMax(XMax);
+  fp.SetRebin(Rebin);
+  fp.SetPlotName(PlotName);
+
   vector<TObjArray*> harr;
   vector<TObjArray*> harr_sys;
 
@@ -177,6 +192,16 @@ int main(int argc, char** argv)
   pl.SetDrawLegend(DrawLegend);
   pl.SetPsFilename(PsFilename);
   pl.SetLumi(Lumi);
+  pl.SetRebin(Rebin);
+  pl.SetXMin(XMin);
+  pl.SetYMin(YMin);
+  pl.SetXMax(XMax);
+  pl.SetYMax(YMax);
+  pl.SetYSize(YSize);
+  pl.SetXAxisLabel(XAxisLabel);
+  pl.SetYAxisLabel(YAxisLabel);
+  pl.SetPlotName(PlotName);
+  pl.SetInfoText(InfoText);
   pl.SetNormError(SysErr);
   pl.SetSingleEPSMode(SingleEPS);
   pl.SetForPublication(ForPublication);

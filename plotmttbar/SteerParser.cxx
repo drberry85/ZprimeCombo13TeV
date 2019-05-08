@@ -388,7 +388,7 @@ void SteerParser::ReadFastArray(const char* keyword,Int_t array[])
 	if ( (fLine.Length() == 0) || (fLine.BeginsWith("//")) ) continue;
 
 	RemoveComments(fLine);
-	RemoveWhiteSpace(fLine);
+    RemoveWhiteSpace(fLine);
 	//Look for class heading
 	if(FindClassnameInLine(fLine)) {
 	  //	  cout <<"SteerParser: Found class "<< fClassname <<endl;
@@ -760,10 +760,10 @@ Bool_t SteerParser::CreateSteering(TString& theclassname, TString& objectname, T
 //  of SteerParser.)
 
     TClass *myclass;
-
+    
     RemoveWhiteSpace(theclassname);
     RemoveWhiteSpace(objectname);
-    RemoveWhiteSpace(block);
+    RemoveWhiteSpace(block, true);
     
     myclass = gROOT->GetClass(theclassname);
 
@@ -876,7 +876,7 @@ void SteerParser::RemoveComments(TString& line) const
 }
 
 //__________________________________________________________
-void SteerParser::RemoveWhiteSpace(TString& line) const
+void SteerParser::RemoveWhiteSpace(TString& line, bool textreplace) const
 {
 // Removes all spaces and tabs from line
     Int_t index;
@@ -887,6 +887,10 @@ void SteerParser::RemoveWhiteSpace(TString& line) const
     while ( ( index=line.Index("\t") ) >= 0 ) { // tab at position index
         line = line.Remove(index,1);
     }
+    if (textreplace) line.ReplaceAll("@"," ");
+    if (textreplace) line.ReplaceAll("[","{");
+    if (textreplace) line.ReplaceAll("]","}");
+
 }
 //__________________________________________________________
 void SteerParser::CountBraces(TString & line)

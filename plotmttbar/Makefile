@@ -67,7 +67,7 @@ clean:
 distclean: clean
 
 $(TMPDIR)/%.o: %.cxx
-	$(CXX) -c $(CXXFLAGS) -I$(TMPDIR) \
+	$(CXX) -g -c $(CXXFLAGS) -I$(TMPDIR) \
 	-o $@ $<
 
 # Rule to create the dictionary
@@ -75,7 +75,7 @@ $(DICTFILE): $(patsubst %_Dict.cxx,%.h,$@)
 	@echo "Generating dictionary $@ with file $(patsubst %_Dict.cxx,%.h,$@)"
 	@$(shell root-config --exec-prefix)/bin/rootcint -f $@ -c -p -I/. $(patsubst %_Dict.cxx,%.h,$@)
 
-Plots:  $(OBJS) $(DICTOBJ)
-	$(CXX) $(CXXFLAGS) $(OBJS) $(DICTOBJ) $(ROOTLIBS) \
+Plots:   $(OBJS) $(DICTOBJ)
+	$(CXX) $(CXXFLAGS) $(OBJS) $(DICTOBJ) $(ROOTLIBS) -g \
 	-o $(BINDIR)/Plots
-	@echo "Plotter for the B2G-16-015 created."
+	@echo "Plotter for the B2G-17-017 created."

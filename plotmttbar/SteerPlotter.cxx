@@ -28,6 +28,16 @@ SteerPlotter::SteerPlotter()
    bPlotThetaFile = false;
    bLogy = false;
    bZScoreInRatio = false;
+   fXMin = 0.0;
+   fXMax = 0.0;
+   fYMin = 0.0;
+   fYMax = 0.0;
+   fYSize = 0.0;
+   fRebin = 0;
+   fXAxisLabel = "";
+   fYAxisLabel = "";
+   fPlotName = "";
+   fInfoText = "";
 }
 
 SteerPlotter::~SteerPlotter()
@@ -134,6 +144,22 @@ void SteerPlotter::Print(Option_t* opt) const
     cout << "No normalisation error will be drawn." << endl;
   }
 
+  if (fXMin != fXMax) {
+    cout << "X-axis Minimum = " << fXMin << endl;
+    cout << "X-axis Maximum = " << fXMax << endl;
+  }
+  if (fYMin != fYMax) {
+    cout << "Y-axis Minimum = " << fYMin << endl;
+    cout << "Y-axis Maximum = " << fYMax << endl;
+  }
+
+  cout << "Y-size: " << fYSize << endl;
+  if (fRebin != 1) cout << "Rebin Value: " << fRebin << endl;
+  if (fXAxisLabel != "") cout << "X-axis Label: " << fXAxisLabel << endl;
+  if (fYAxisLabel != "") cout << "Y-axis Label: " << fYAxisLabel << endl;
+  if (fPlotName != "") cout << "Only using plots that contain " << fPlotName << endl;
+  if (fInfoText != "") cout << "Info Text: " << fInfoText << endl;
+
   if (bDrawLegend) cout << "Legend will be plotted everywhere." << endl;
   else cout << "Legend will be plotted on first plot only" << endl;
 
@@ -218,6 +244,24 @@ Bool_t SteerPlotter::GetLogy(){return bLogy;}
 void SteerPlotter::SetLumi(Float_t lumi){fLumi = lumi;}
 Float_t SteerPlotter::GetLumi(){return fLumi;}
 
+void SteerPlotter::SetRebin(Int_t rebin){fRebin = rebin;}
+Int_t SteerPlotter::GetRebin(){return fRebin;}
+
+void SteerPlotter::SetXMin(Float_t xmin){fXMin = xmin;}
+Float_t SteerPlotter::GetXMin(){return fXMin;}
+
+void SteerPlotter::SetYMin(Float_t ymin){fYMin = ymin;}
+Float_t SteerPlotter::GetYMin(){return fYMin;}
+
+void SteerPlotter::SetXMax(Float_t xmax){fXMax = xmax;}
+Float_t SteerPlotter::GetXMax(){return fXMax;}
+
+void SteerPlotter::SetYMax(Float_t ymax){fYMax = ymax;}
+Float_t SteerPlotter::GetYMax(){return fYMax;}
+
+void SteerPlotter::SetYSize(Float_t ysize){fYSize = ysize;}
+Float_t SteerPlotter::GetYSize(){return fYSize;}
+
 void SteerPlotter::SetSysError(Float_t err){fSysError = err;}
 Float_t SteerPlotter::GetSysError(){return fSysError;}
 
@@ -232,6 +276,18 @@ TObjArray* SteerPlotter::GetInputFiles() {return &fInputFiles;}
 
 void SteerPlotter::SetOutputPsFile(const char* in) {fOutputPsFile = in;}
 const char* SteerPlotter::GetOutputPsFile() {return fOutputPsFile.Data();}
+
+void SteerPlotter::SetXAxisLabel(const char* in) {fXAxisLabel = in;}
+const char* SteerPlotter::GetXAxisLabel() {return fXAxisLabel.Data();}
+
+void SteerPlotter::SetYAxisLabel(const char* in) {fYAxisLabel = in;}
+const char* SteerPlotter::GetYAxisLabel() {return fYAxisLabel.Data();}
+
+void SteerPlotter::SetPlotName(const char* in) {fPlotName = in;}
+const char* SteerPlotter::GetPlotName() {return fPlotName.Data();}
+
+void SteerPlotter::SetInfoText(const char* in) {fInfoText = in;}
+const char* SteerPlotter::GetInfoText() {return fInfoText.Data();}
 
 void SteerPlotter::SetCycleName(const char* in) {fCycleName = in;}
 const char* SteerPlotter::GetCycleName() {return fCycleName.Data();}

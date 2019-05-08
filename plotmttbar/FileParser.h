@@ -31,6 +31,10 @@ class FileParser
   TObjArray* GetHists(){return m_hists;}
   TObjArray* GetShapeSys(){return m_shapeSys;}
   void SetDebug(bool flag=true){debug = flag;}
+  void SetRebin(Int_t rebin){m_rebin = rebin;}
+  void SetXMin(float xmin){m_xmin = xmin;}
+  void SetXMax(float xmax){m_xmax = xmax;}
+  void SetPlotName(TString plotname){m_plotname = plotname;}
 
   void SetDoCumulative(bool flag=true){m_do_cumulative = flag;}
 
@@ -44,11 +48,14 @@ class FileParser
 
   TFile* m_file;
   TString m_process;
+  TString m_plotname;
   bool debug;
   bool m_do_cumulative;
   TObjArray* m_hists;
   TObjArray* m_shapeSys;
-  
+  float m_xmin;
+  float m_xmax;
+  Int_t m_rebin;
 
 };
 

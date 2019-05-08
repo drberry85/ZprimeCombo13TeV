@@ -82,9 +82,19 @@ class SPlotter
   void SetForPrelim(Bool_t flag=true){bForPrelim = flag;}
   void SetForPublication(Bool_t flag=true){bForPublication = flag;}
   void SetLumi(float lumi){m_lumi = lumi;}
+  void SetXMin(float xmin){m_xmin = xmin;}
+  void SetYMin(float ymin){m_ymin = ymin;}
+  void SetXMax(float xmax){m_xmax = xmax;}
+  void SetYMax(float ymax){m_ymax = ymax;}
+  void SetYSize(float ysize){m_ysize = ysize;}
+  void SetRebin(Int_t rebin){m_rebin = rebin;}
   void SetNormError(float err){m_syserr = err;}
   void SetDrawLegend(Bool_t flag=true){bDrawLegend = flag;}
   void SetPsFilename(TString name);
+  void SetXAxisLabel(TString XAxisLabel);
+  void SetYAxisLabel(TString YAxisLabel);
+  void SetPlotName(TString PlotName);
+  void SetInfoText(TString InfoText);
   void SetShapeSysHists(std::vector<TObjArray*> arr){m_shapesys_arr = arr;}
   void SetLogy(Bool_t flag){bPlotLogy = flag;}
   void SetIgnoreEmptyBins(Bool_t flag){bIgnoreEmptyBins = flag;}
@@ -92,19 +102,28 @@ class SPlotter
   void SetScaleSysUnc(TObjArray* arr){m_ScaleSysUncName = arr;}
   void SetSysUncWeight(TArrayF arr){m_sysweight = arr;}
 
+  void AddHistWeight(double weight){m_histweights.push_back(weight);}
+  double GetHistWeightAtIndex(int index){return m_histweights[index];}
+
  private:
 
   // do the stacking
   void StackHists(std::vector<TObjArray*>& hists, int index, bool rename=false);
 
   std::vector<TObjArray*> m_shapesys_arr;
+  std::vector<double> m_histweights;
 
   TArrayF m_sysweight;
-  TObjArray* m_ScaleSysUncName; 
+  TObjArray* m_ScaleSysUncName;
 
   TCanvas* m_can; 
   TPostScript* m_ps; 
   TString m_ps_name;
+  TString m_filename;
+  TString m_xaxislabel;
+  TString m_yaxislabel;
+  TString m_plotname;
+  TString m_infotext;
 
   TPad* m_pad1;
   TPad* m_pad2;
@@ -123,7 +142,13 @@ class SPlotter
   bool  bDrawLumi;          // display the lumi information 
   bool  bForPrelim;         // write "CMS Preliminary"
   bool  bForPublication;    // write "CMS"
+  Int_t m_rebin;            // rebin histogram
   float m_lumi;             // total integrated luminosity
+  float m_xmin;             // X-axis Minimum
+  float m_ymin;             // Y-axis Minimum
+  float m_xmax;             // X-axis Maximum
+  float m_ymax;             // Y-axis Maximum
+  float m_ysize;            // Y size of TLegend
   float m_syserr;           // systematic error on normalisation uncertainty
   bool  bDrawLegend;        // display legend?
   bool  bPlotRatio;         // should a ratio be plotted?

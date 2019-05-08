@@ -1,0 +1,53 @@
+SteerPlotter(){
+
+  // steering for the plotter
+  fCycleName     = "templates/ele_theta_wFlatShapeSyst_wTopPtrewSymSyst_allVars_WJetsEnriched.root";
+  fInputFiles    = "DATA,    ttbar, wjets_l, wjets_c, wjets_b,    DY,    ST";
+  fSampleNames   = "Data, t #bar t, W(#rightarrow e #nu)+jets, W(#rightarrow e #nu)+jets, W(#rightarrow e #nu)+jets, Other, Other";
+  fSamplesWeight = "1.0, 0.895196471719, 0.942322917909,  0.91536968441,   0.9153672653,    0.8535030888,   0.817972239383";
+  fSamplesUnc    = "0.0, 0.191250941609, 0.0387125675817, 0.0387125675817, 0.0387125675817, 0.464082274476, 0.447685432111";
+  fHistColors    = " 1,      808,     866,     866,     866,   880,   880";
+  fHistMarkers   = "20,        0,       0,       0,       0,     0,     0";
+
+  fSamplesToStack = "ttbar, wjets_l, wjets_c, wjets_b, ST, DY"; // the names of chains which you would like to stack (same as in input filenames)
+  fScaleSysUnc    = "PDF, bmistag, btag, closure, csv_cferr1, csv_cferr2, csv_hf, csv_hfstats1, csv_hfstats2, csv_jes, csv_lf, csv_lfstats1, csv_lfstats2, diboson_xsec, elecHLT, elecID, elecTRK, jec, jer, lumi, mistoptag, modMass, muHLT, muID, muTRK, pileup, q2ttbar, singletop_xsec, toppt_reweight, toptag, ttbar_rate, wjets_rate, zjets_rate";
+  fSysUncWeight   = "0.525839304385, 0.471888028534, 0.259527051041, 0.0544304305562, 0.210029448427, 0.0774513955997, 0.078984797757, 0.125842640496, 0.804335457806, 0.56891941364, 0.156948150109, 0.0731605160403, 0.0729371061385, 0.481004484206, 0.284065393497, 0.345435656045, 0.407410762374, 0.0577753081329, 0.128036269072, 0.242957759187, 1.26397085239, 0.138044950316, 0.262338697671, 0.175918510056, 0.359538475184, 0.292145354714, 0.0394251406124, 0.180653280187, 0.143169763919, 0.056218089236, 0.0644847474436, 0.0668600173857, 0.15739150096";
+
+  fOutputPsFile = "output/Topjet_pt_ele.ps";
+
+  bRatioPlot = true;       // plot ratio histograms?
+  bDrawLegend = true;      // draw a legend on each histogram? (otherwise only on the first one in each ps file)
+  bShapeNorm = false;      // shape normalization?
+  bPortrait = true;        // portrait or landscape?
+  bDrawEntries = true;     // draw the histogram entries?
+  fLumi = 35.9;            // luminosity of sample
+  fSysError = 0.025;       // luminosity uncertainty
+  bDrawLumi = true;        // plot integrated luminosity label
+  bForPrelim = false;      // draw text saying "CMS Preliminary" -> only works if bDrawLumi is on
+  bForPublication = true;  // draw text saying "CMS" -> only works if bDrawLumi is on
+  bIgnoreEmptyBins = true; // don't plot a huge error in the ratio if bins are empty
+
+  bSingleEPS = true;
+  bPlotThetaFile = true;
+  bLogy = false;
+
+  fXMin = 360.0;           // x-axis minimum
+  fXMax = 900.0;           // x-axis maximum
+  fYMin = 0.5;             // y-axis minimum
+  fYMax = 900.0;           // y-axis maximum
+
+  fYSize = 0.25;           // y size of TLegend
+  fRebin = 1;              //Rebin Histogram
+  fXAxisLabel = "auto";    // x-axis label
+  fYAxisLabel = "Events";  // y-axis label
+  fPlotName = "topjet_pt_ele_01top_antiWJetsMVA_antichi2_mttbar"; // Histograme Name
+  fInfoText = "#splitline[e+jets][W+jets@CR]"; //Text in InfoText box in upper right hand corner of plot
+}
+
+// Colors from ROOT:
+// num EColor { kWhite =0,   kBlack =1,   kGray=920
+//             ,kRed   =632, kGreen =416, kBlue=600, kYellow=400, kMagenta=616, kCyan=432
+//             ,kOrange=800, kSpring=820, kTeal=840, kAzure =860, kViolet =880, kPink=900};
+//
+// default QCD   = 867 -> lighter version of Azure
+// default ttbar = 810 -> dark version of Orange (rather red)

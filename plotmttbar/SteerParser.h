@@ -45,7 +45,7 @@ private:
     Bool_t LineEnd(const TString& line) const;
     TString ValueOfLine(const TString& line) const;
     void RemoveComments(TString& line) const;
-    void RemoveWhiteSpace(TString& line) const;
+    void RemoveWhiteSpace(TString& line, bool textreplace = false) const;
     void CountBraces(TString& line);
     Bool_t   FindArrayInFile(const char* keyword, Bool_t checkNamespace = kFALSE);
     void    SelectNamespace(TList& steerLines, const char* nameSpace) const;

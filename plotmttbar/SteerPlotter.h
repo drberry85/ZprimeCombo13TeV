@@ -49,6 +49,18 @@ public:
     void SetOutputPsFile(const char* in);
     const char* GetOutputPsFile();
 
+    void SetXAxisLabel(const char* in);
+    const char* GetXAxisLabel();
+
+    void SetYAxisLabel(const char* in);
+    const char* GetYAxisLabel();
+
+    void SetPlotName(const char* in);
+    const char* GetPlotName();
+
+    void SetInfoText(const char* in);
+    const char* GetInfoText();
+
     void SetCycleName(const char* in);
     const char* GetCycleName();
 
@@ -91,8 +103,26 @@ public:
     void SetDrawLegend(Bool_t flag);
     Bool_t GetDrawLegend();
 
+    void SetRebin(Int_t rebin);
+    Int_t GetRebin();
+
     void SetLumi(Float_t lumi);
     Float_t GetLumi();
+
+    void SetXMin(Float_t xmin);
+    Float_t GetXMin();
+
+    void SetYMin(Float_t ymin);
+    Float_t GetYMin();
+
+    void SetXMax(Float_t xmax);
+    Float_t GetXMax();
+
+    void SetYMax(Float_t ymax);
+    Float_t GetYMax();
+
+    void SetYSize(Float_t ysize);
+    Float_t GetYSize();
 
     void SetSysError(Float_t err);
     Float_t GetSysError();
@@ -133,6 +163,11 @@ private:
     Bool_t    bIgnoreEmptyBins;   // ignore empty bins in the ratio
     Int_t     fNumOfSamples;      // how many analysis samples should be plotted
     Float_t   fLumi;              // integrated luminosity of sample
+    Float_t   fXMin;              // X-axis Minimum
+    Float_t   fYMin;              // Y-axis Minimum
+    Float_t   fXMax;              // X-axis Maximum
+    Float_t   fYMax;              // Y-axis Maximum
+    Float_t   fYSize;             // Y-size of the TLegend
     Float_t   fSysError;          // systematic error on normalisation
     TObjArray  fSampleNames;      // all sample name
 
@@ -146,6 +181,11 @@ private:
     TObjArray fInputFiles;        // input filenames
     TString   fCycleName;         // name of the cycle, can be used as prefix for the filenames
     TString   fOutputPsFile;      // name of the resulting ps file
+    Int_t     fRebin;             // Rebin the histogram
+    TString   fXAxisLabel;        // Label on the x-axis
+    TString   fYAxisLabel;        // Label on the y-axis
+    TString   fPlotName;          // Name of histogram in root file
+    TString   fInfoText;          // Label under CMS label
 
     TArrayI   fHistColors;        // the histogram colors
     TArrayI   fHistMarkers;       // the histogram markers
